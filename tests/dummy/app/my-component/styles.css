@@ -1,3 +1,12 @@
+& {
+  border: 1px solid black;
+}
 .foo {
   color: blue;
+}
+.bar {
+  color: red;
+}
+.foo > .h3 {
+  color: white;
 }

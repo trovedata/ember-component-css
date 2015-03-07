@@ -28,15 +28,40 @@ var podLookup = Object.create(null);
 
 var HAS_AMPERSAND = /&/;
 
-function transformCSS(podGuid, parsedCss) {
+function isValidSelector(selector) {
+  var parts = selector.split(/\s+/);
+  var part;
+  var isValid = true;
+
+  for (var i = 0, l = parts.length; i < l; i++) {
+    part = parts[i];
+    if (part === '&' || part === '>') { continue; }
+    if (part[0] !== '.') {
+      isValid = false;
+      break;
+    }
+  }
+
+  return isValid;
+}
+
+function transformCSS(podName, podGuid, parsedCss) {
   var rules = parsedCss.stylesheet.rules;
 
   rules.forEach(function(rule) {
     rule.selectors = rule.selectors.map(function(selector) {
-      if (HAS_AMPERSAND.test(selector)) {
+      if (!isValidSelector(selector)) {
+        var message = 'Invalid selector specified in ' + podName + '/styles.css: ' + selector;
+        message += '\nOnly class-based selectors (`.foo`) or `&` can be used inside of component styles.';
+        throw new Error(message);
+      }
+      if (HAS_AMPERSAND.test(selector)) { // TODO: handle ampersand with component prefix properly
         return selector.replace('&', '.' + podGuid);
       } else {
-        return '.' + podGuid + " " + selector;
+        // TODO: handle descendant operator propertly (.foo > .bar)
+        var selectorGuid = podName + "-" + selector.replace(/^\./, '') + "-" + guid();
+        podLookup[podName + selector] = selectorGuid;
+        return '.' + selectorGuid;
       }
     });
   });
@@ -56,7 +81,7 @@ BrocComponentCssPreprocessor.prototype.write = function (readTree, destDir) {
       var podGuid = podName + '-' + guid();
       var cssFileContents = fs.readFileSync(path.join(srcDir, filepath)).toString();
       var parsedCss = css.parse(cssFileContents);
-      var transformedParsedCSS = transformCSS(podGuid, parsedCss);
+      var transformedParsedCSS = transformCSS(podName, podGuid, parsedCss);
       buffer.push(css.stringify(transformedParsedCSS));
       podLookup[podName] = podGuid;
     }
