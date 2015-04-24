@@ -248,5 +248,12 @@ module.exports = {
       return new ComponentCssPostprocessor(workingTree);
     }
     return workingTree;
+  },
+
+  setupPreprocessorRegistry: function(type, registry) {
+    registry.add('htmlbars-ast-plugin', {
+      name: "transform-component-layout",
+      plugin: require('./ext/plugins/transform-component-layout')
+    });
   }
 };
