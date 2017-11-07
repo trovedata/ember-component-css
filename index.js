@@ -89,7 +89,7 @@ module.exports = {
     this.addonConfig = this.appConfig['ember-component-css'] || {};
     this.classicStyleDir = this.addonConfig.classicStyleDir || 'component-styles';
     this.terseClassNames = Boolean(this.addonConfig.terseClassNames);
-    this.allowedStyleExtensions = app.registry.extensionsForType('css').filter(Boolean);
+    this.allowedStyleExtensions = [ 'css', 'styl', 'scss', 'sass' ];
   },
 
   config: function(enviroment) {
